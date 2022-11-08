@@ -1,0 +1,30 @@
+{
+  "id": "com.example.create-subscription",
+  "version": "0.0.1",
+  "name": "Pre bill your order renewals",
+  "icon": "",
+  "permissions": [
+    {
+      "permission": "subscription_write",
+      "purpose": "Allows the app to pre-bill the customer during order renewals."
+    }
+  ],
+  "app_backend": {
+    "webhooks": []
+  },
+  "ui_extension": {
+    "views": [
+      {
+        "viewport": "stripe.dashboard.subscription.detail",
+        "component": "App"
+      }
+    ],
+    "actions": [],
+    "content_security_policy": {
+      "connect-src": null,
+      "image-src": null,
+      "purpose": ""
+    }
+  },
+  "post_install_action": null
+}
