@@ -23,52 +23,67 @@ const stripe = new Stripe(STRIPE_API_KEY, {
 const App = ({ userContext, environment }: ExtensionContextValue) => {
   const [isPressed, setIsPressed] = useState(false);
   const [isPrebilled, setIsPrebilled] = useState(false);
-  var setIterations = 1;
+  let setIterations = 1;
+  let subcriptionScheduleId ='';
   const BASE_URL =
     environment.mode == "test"
       ? `https://dashboard.stripe.com/${environment.mode}`
       : `https://dashboard.stripe.com`;
-  
-      console.log(environment.objectContext?.id)
-  //Get Current Subscriptions details
-  const getSubscription = useCallback(async () => {
-  const data = await stripe.subscriptions.retrieve(environment.objectContext?.id);
-    console.log(data)
-    if(data.prebilling.invoice)
-      setIsPrebilled(true);
-  }, []);
 
-  useEffect(() => {
-    getSubscription();
-  }, [getSubscription]);
+  // Stripe object ID of the current view point - This app should pick up the customer object Id.
+  console.log(environment.objectContext?.id)
+ 
+  //---------------------------- Backend - Stripe API ---------------------------------
 
+  // 1. Validate if prebilling is enabled for Subscription Schedules and get the Subscription schedule Id
+   const isPrebillingEnabled = useCallback(async () => {
+    const subscriptionScheduleResponse = await stripe.subscriptionSchedules.list({ 
+          customer: environment.objectContext?.id,
+        });
+      console.log(subscriptionScheduleResponse)
+      subcriptionScheduleId = subscriptionScheduleResponse. data[0].id
+      if(subscriptionScheduleResponse.data[0].prebilling.invoice)
+        setIsPrebilled(true);
+    }, []);
+
+  // 2. Update Subscription Schedule with prebilling
   const createPrebill = () => {
-    // Call the Stripe API to renew the subscription with prebilling for 1 iteration
-    // If the user has permission to update subscription, this should succeed.
-    const subcriptionData = stripe.subscriptions.update(
-      // We can use the current objectContext to get the Subscription ID.
-      environment.objectContext?.id,
+    const subcriptionScheduleData = stripe.subscriptionSchedules.update(
+      subcriptionScheduleId,
       { prebilling: {
           iterations: setIterations,
         }
       }
     );
-    return subcriptionData
+    return subcriptionScheduleData
   }
+
+   //---------------------------- On page load -----------------------------------
+
+   useEffect(() => {
+    isPrebillingEnabled();
+  }, [isPrebillingEnabled]);
+  
+
+  //---------------------------- Backend - Action Components---------------------------------
+
   const handleClick = () => {
     // Function 1
     createPrebill()
       .then((response) => {
-        showToast("Subscription updated", {type: "success"})
-        return response.json()
+        showToast("Prebilling enabled", {type: "success"})
+        setIsPrebilled(true);
+        //return response.json()
       })
-      .catch(() => {
-        showToast("Subscription could not be updated", {type: "caution"})
+      .catch((error) => {
+        showToast(error.message.substring(0,29), {type: "caution"})
       })
-    // Function 2
-    setIsPrebilled(true);
     }
-  //View Components//
+
+ 
+  //---------------------------- Front end - View Components---------------------------------
+
+  
   return (
     <ContextView
       title="Pre bill the customer for order renewals"
@@ -85,8 +100,6 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
     }}>
         <option value="">Choose an option</option>
         <option value="1">1</option>
-        <option value="2">2</option>
-        <option value="3">3</option>
     </Select>
     <Box
       css={{
@@ -98,7 +111,7 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
     >
       <Button type="primary" disabled={isPrebilled? true:false} onPress={handleClick}>
         <Icon name="recurring" />
-        {isPrebilled ? 'Order renewed!' : 'Renew Order'}
+        {isPrebilled ? 'Order Prebilled Already!' : 'Prebill Order'}
       </Button>
     </Box>
     </ContextView>

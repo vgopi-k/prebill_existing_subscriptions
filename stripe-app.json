@@ -15,7 +15,7 @@
   "ui_extension": {
     "views": [
       {
-        "viewport": "stripe.dashboard.subscription.detail",
+        "viewport": "stripe.dashboard.customer.detail",
         "component": "App"
       }
     ],
