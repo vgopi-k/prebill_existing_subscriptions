@@ -40,18 +40,15 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
 
   // 1. Validate if prebilling is enabled for Subscription Schedules and get the Subscription schedule Id
   const isPrebillingEnabled = useCallback(async () => {
-    let i = 0;
     setIsPrebilled(true);
     setHasCheckedPrebillState(false);
     for await (const subscriptionScheduleResponse of stripe.subscriptionSchedules.list({
       customer: environment.objectContext?.id,
     })) {
-      console.log('debug 1: ' + subscriptionScheduleResponse?.prebilling?.invoice);
       if ((typeof subscriptionScheduleResponse?.prebilling?.invoice == 'undefined')) {
         setIsPrebilled(false);
         arrSubSchedule.push(subscriptionScheduleResponse);
       }
-      i++;
     }
     // set flag that PrebillState has been checked to true;
     setHasCheckedPrebillState(true);
@@ -59,7 +56,6 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
 
   // 2. Update Subscription Schedule with prebilling
   const createPrebill = () => {
-    console.log('Selected value: ' + selectedSubSched)
     const subcriptionScheduleData = stripe.subscriptionSchedules.update(
       arrSubSchedule[selectedSubSched]?.id,
       {
@@ -101,8 +97,6 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
 
   // display if multiple schedule
   function SelectSubscriptionSchedule(props) {
-    console.log('debug 2: ' + props.hasCheckedPrebillState)
-    console.log('debug 2.1: ' + arrSubSchedule)
     //if not checked prebilled state show message
     if (props.hasCheckedPrebillState == 'false') {
       return (
@@ -141,7 +135,7 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
           <option value="-1">Choose a Subscription Schedule to modify</option>
           {
             arrSubSchedule.map((val, index) =>
-              <option value={index}>{val?.metadata?.salesforce_order_id ? val?.id + " - " + val?.metadata?.salesforce_order_id : val.id}</option>
+              <option value={index}>{val?.metadata?.salesforce_order_id ? val?.id + " - " + val?.metadata?.salesforce_order_id : val?.id}</option>
             )
           }
         </Select>
