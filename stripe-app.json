@@ -1,6 +1,6 @@
 {
-  "id": "com.example.create-subscription",
-  "version": "0.0.1",
+  "id": "com.example.prebill",
+  "version": "0.0.3",
   "name": "Pre bill your order renewals",
   "icon": "",
   "permissions": [
