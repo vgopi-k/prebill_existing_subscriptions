@@ -40,18 +40,19 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
 
   // 1. Validate if prebilling is enabled for Subscription Schedules and get the Subscription schedule Id
   const isPrebillingEnabled = useCallback(async () => {
-    let i = 0;
+    //let i = 0;
     setIsPrebilled(true);
     setHasCheckedPrebillState(false);
-    for await (const subscriptionScheduleResponse of stripe.subscriptionSchedules.list({
+    const subschedules = await stripe.subscriptionSchedules.list({
       customer: environment.objectContext?.id,
-    })) {
+    })
+    for (const subscriptionScheduleResponse of subschedules.data) {
       console.log('debug 1: ' + subscriptionScheduleResponse?.prebilling?.invoice);
       if ((typeof subscriptionScheduleResponse?.prebilling?.invoice == 'undefined')) {
         setIsPrebilled(false);
         arrSubSchedule.push(subscriptionScheduleResponse);
       }
-      i++;
+      //i++;
     }
     // set flag that PrebillState has been checked to true;
     setHasCheckedPrebillState(true);
@@ -66,7 +67,9 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
         prebilling: {
           iterations: setIterations,
         }
-      }
+      }, {
+          idempotencyKey: arrSubSchedule[selectedSubSched]?.id
+        }
     );
     return subcriptionScheduleData
   }
@@ -134,17 +137,17 @@ const App = ({ userContext, environment }: ExtensionContextValue) => {
     else {
       // otherwise return a select box to choose the appropriate Subscription Schedule
       return (
-        <Select name="prebill-ss" form="number" label="Select Subscription Schedule to Pre-Bill" value={selectedSubSched}
-          onChange={(e) => {
-            setSelectedSubSched(parseInt(e.target.value));
-          }}>
-          <option value="-1">Choose a Subscription Schedule to modify</option>
-          {
-            arrSubSchedule.map((val, index) =>
-              <option value={index}>{val?.metadata?.salesforce_order_id ? val?.id + " - " + val?.metadata?.salesforce_order_id : val.id}</option>
-            )
-          }
-        </Select>
+          <Select name="prebill-ss" form="number" label="Select Subscription Schedule to Pre-Bill" value={selectedSubSched}
+            onChange={(e) => {
+              setSelectedSubSched(parseInt(e.target.value));
+            }}>
+            <option value="-1">Choose a Subscription Schedule to modify</option>
+            {
+              arrSubSchedule.map((val, index) =>
+                <option value={index}>{val?.metadata?.salesforce_order_id ? val?.id + " - " + val?.metadata?.salesforce_order_id : val.id}</option>
+              )
+            }
+          </Select>
       )
     }
   }

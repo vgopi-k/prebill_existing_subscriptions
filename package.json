@@ -1,11 +1,14 @@
 {
-  "name": "com.example.create-subscription",
+  "name": "com.example.prebill",
   "version": "0.0.1",
   "description": "Create Subscription to Pre bill your customers",
   "private": true,
   "license": "~~proprietary~~",
   "dependencies": {
     "@stripe/ui-extension-sdk": "^8.4.1",
+    "latest": "^0.2.0",
+    "n": "^9.0.1",
+    "stable": "^0.1.8",
     "stripe": "^10.16.0"
   },
   "engines": {
